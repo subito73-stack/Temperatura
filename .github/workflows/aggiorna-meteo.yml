@@ -21,19 +21,24 @@ jobs:
       run: |
         node -e "
         const fs = require('fs');
-        fetch('https://meteoregionelazio.it')
+        fetch('https://meteoregionelazio.it/rete/stazione.php?id=AQ-039')
           .then(res => res.text())
           .then(html => {
-            const regex = /Attuale\s*<\/td>[\s\S]*?<strong>([\d.,-]+)\s*°C<\/strong>/i;
+            // Cerchiamo la parola 'Attuale' e catturiamo il primo valore in grassetto successivo con il simbolo °C
+            const regex = /Attuale[\s\S]*?<strong>\s*([\d.,-]+(?:\s*°C)?)\s*<\/strong>/i;
             const match = html.match(regex);
             
             let temp = 'N/D';
             if (match && match[1]) {
-              temp = match[1].trim() + '°C';
+              temp = match[1].trim();
+              if (!temp.includes('°C')) temp += '°C';
             } else {
-              const fallback = /([\d.,-]+)\s*°C/;
-              const fallMatch = html.match(fallback);
-              if (fallMatch) temp = fallMatch[1].trim() + '°C';
+              // Secondo tentativo se la struttura della tabella varia leggermente
+              const fallbackRegex = /<strong>([\d.,-]+)\s*°C<\/strong>/i;
+              const fallbackMatch = html.match(fallbackRegex);
+              if (fallbackMatch && fallbackMatch[1]) {
+                temp = fallbackMatch[1].trim() + '°C';
+              }
             }
             
             const dati = { 
