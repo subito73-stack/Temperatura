@@ -1,0 +1,54 @@
+name: Aggiorna Temperatura Meteo
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Controlla il repository
+      uses: actions/checkout@v4
+
+    - name: Configura Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Estrai i dati dal sito meteo
+      run: |
+        node -e "
+        const fs = require('fs');
+        fetch('https://meteoregionelazio.it')
+          .then(res => res.text())
+          .then(html => {
+            const regex = /Attuale\s*<\/td>[\s\S]*?<strong>([\d.,-]+)\s*°C<\/strong>/i;
+            const match = html.match(regex);
+            
+            let temp = 'N/D';
+            if (match && match[1]) {
+              temp = match[1].trim() + '°C';
+            } else {
+              const fallback = /([\d.,-]+)\s*°C/;
+              const fallMatch = html.match(fallback);
+              if (fallMatch) temp = fallMatch[1].trim() + '°C';
+            }
+            
+            const dati = { 
+              temperatura: temp, 
+              aggiornato: new Date().toISOString() 
+            };
+            fs.writeFileSync('temperatura.json', JSON.stringify(dati, null, 2));
+            console.log('Dati salvati:', dati);
+          });
+        "
+
+    - name: Salva il file aggiornato nel repository
+      run: |
+        git config --global user.name 'MeteoBot'
+        git config --global user.email 'bot@github.com'
+        git add temperatura.json
+        git commit -m "Aggiornamento automatico temperatura" || exit 0
+        git push
