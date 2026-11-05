@@ -23,8 +23,8 @@ jobs:
 
             const dati = { temperatura: temp, aggiornato: new Date().toISOString() };
 
-            const binId = '6aecbfc2ac6210605a6ff3bd';
-            const apiKey = '$2a$10$9yX9N0AhoZ24JBiMQ.kOxe2qMAaCH5Ns4SHzB3Hx.hbDRRWP2Sffq';
+            const binId = "6aecbfc2ac6210605a6ff3bd";
+            const apiKey = "$2a$10$9yX9N0AhoZ24JBiMQ.kOxe2qMAaCH5Ns4SHzB3Hx.hbDRRWP2Sffq";
 
             fetch('https://jsonbin.io' + binId, {
               method: 'PUT',
